@@ -10,6 +10,7 @@ import (
 	"github.com/decentralized-hse/lsm-verification/proto"
 	"github.com/decentralized-hse/lsm-verification/validation"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -46,7 +47,7 @@ func main() {
 	replicaId := int32(replicaIdInt)
 	rsaKeyPath := os.Args[4]
 
-	conn, err := grpc.Dial(addr)
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
