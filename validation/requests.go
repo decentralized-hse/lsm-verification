@@ -35,6 +35,12 @@ func getLastByKey(ctx context.Context, client proto.LSeqDatabaseClient, replicaI
 	return lastItem.Value, nil
 }
 
+func putByKey(ctx context.Context, client proto.LSeqDatabaseClient, key, value string) error {
+	putRequest := &proto.PutRequest{Key: key, Value: value}
+	_, err := client.Put(ctx, putRequest)
+	return err
+}
+
 func GetAllButValidation(
 	ctx context.Context,
 	client proto.LSeqDatabaseClient,
@@ -78,4 +84,16 @@ func GetLastSignedHash(ctx context.Context, client proto.LSeqDatabaseClient, rep
 
 func GetLastLseq(ctx context.Context, client proto.LSeqDatabaseClient, replicaId int32) (string, error) {
 	return getLastByKey(ctx, client, replicaId, LAST_LSEQ_KEY)
+}
+
+func PutNewHash(ctx context.Context, client proto.LSeqDatabaseClient, hashValue string) error {
+	return putByKey(ctx, client, HASH_KEY, hashValue)
+}
+
+func PutNewSignedHash(ctx context.Context, client proto.LSeqDatabaseClient, signedHashValue string) error {
+	return putByKey(ctx, client, SIGNED_HASH_KEY, signedHashValue)
+}
+
+func PutNewLastLseq(ctx context.Context, client proto.LSeqDatabaseClient, lastLseqValue string) error {
+	return putByKey(ctx, client, LAST_LSEQ_KEY, lastLseqValue)
 }
