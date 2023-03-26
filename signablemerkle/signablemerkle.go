@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 
 	"github.com/cbergoon/merkletree"
 	"github.com/decentralized-hse/lsm-verification/proto"
@@ -28,7 +27,7 @@ func (s *SignableDBItem) CalculateHash() ([]byte, error) {
 func (s *SignableDBItem) Equals(other merkletree.Content) (bool, error) {
 	otherItem, ok := other.(*SignableDBItem)
 	if !ok {
-		return false, errors.New("value is not of type SignableDBItem")
+		return false, ErrWrongContentType
 	}
 	return (*proto.DBItems_DbItem)(s).String() == (*proto.DBItems_DbItem)(otherItem).String(), nil
 }
@@ -64,7 +63,7 @@ func (s *SignableMerkle) GetSignedHash(privateKey *rsa.PrivateKey) (string, erro
 
 func (s *SignableMerkle) VerifyHash(hash string) error {
 	if hash != s.GetHash() {
-		return errors.New("invalid Merkle tree hash")
+		return ErrInvalidHash
 	}
 
 	return nil
