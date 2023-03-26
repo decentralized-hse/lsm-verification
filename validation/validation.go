@@ -19,7 +19,7 @@ func Validate(ctx context.Context, client proto.LSeqDatabaseClient, replicaId in
 		return err
 	}
 
-	dbItems, err := GetAll(ctx, client, replicaId, nil)
+	dbItems, err := GetAllButValidation(ctx, client, replicaId, nil)
 	if err != nil {
 		return err
 	}

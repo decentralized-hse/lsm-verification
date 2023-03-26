@@ -35,7 +35,7 @@ func getLastByKey(ctx context.Context, client proto.LSeqDatabaseClient, replicaI
 	return lastItem.Value, nil
 }
 
-func GetAll(
+func GetAllButValidation(
 	ctx context.Context,
 	client proto.LSeqDatabaseClient,
 	replicaId int32,
