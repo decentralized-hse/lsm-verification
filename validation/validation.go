@@ -42,6 +42,8 @@ func HashAndSign(
 	replicaId int32,
 	privateKey *rsa.PrivateKey,
 ) error {
+	// TODO: make use of a potentially existing last hash
+
 	dbItems, err := GetAllButValidation(ctx, client, replicaId, nil)
 	if err != nil {
 		return err
