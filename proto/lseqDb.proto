@@ -4,7 +4,7 @@ import "google/protobuf/empty.proto";
 
 package lseqdb;
 
-option go_package = "./database/";
+option go_package = "./proto/";
 
 message ReplicaKey {
   string key = 1;

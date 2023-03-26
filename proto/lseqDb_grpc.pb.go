@@ -4,7 +4,7 @@
 // - protoc             v3.12.4
 // source: lseqDb.proto
 
-package database
+package proto
 
 import (
 	context "context"

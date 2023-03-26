@@ -9,13 +9,13 @@ import (
 	"errors"
 
 	"github.com/cbergoon/merkletree"
-	"github.com/decentralized-hse/lsm-verification/database"
+	"github.com/decentralized-hse/lsm-verification/proto"
 )
 
-type SignableDBItem database.DBItems_DbItem
+type SignableDBItem proto.DBItems_DbItem
 
 func (s *SignableDBItem) CalculateHash() ([]byte, error) {
-	stringRepr := (*database.DBItems_DbItem)(s).String()
+	stringRepr := (*proto.DBItems_DbItem)(s).String()
 
 	h := sha256.New()
 	if _, err := h.Write([]byte(stringRepr)); err != nil {
@@ -30,12 +30,12 @@ func (s *SignableDBItem) Equals(other merkletree.Content) (bool, error) {
 	if !ok {
 		return false, errors.New("value is not of type TestContent")
 	}
-	return (*database.DBItems_DbItem)(s).String() == (*database.DBItems_DbItem)(otherItem).String(), nil
+	return (*proto.DBItems_DbItem)(s).String() == (*proto.DBItems_DbItem)(otherItem).String(), nil
 }
 
 type SignableMerkle merkletree.MerkleTree
 
-func NewSignableMerkle(databaseItems []*database.DBItems_DbItem) (*SignableMerkle, error) {
+func NewSignableMerkle(databaseItems []*proto.DBItems_DbItem) (*SignableMerkle, error) {
 	convertedDatabaseItems := make([]merkletree.Content, 0, len(databaseItems))
 	for _, dbItem := range databaseItems {
 		convertedDatabaseItems = append(convertedDatabaseItems, (*SignableDBItem)(dbItem))
