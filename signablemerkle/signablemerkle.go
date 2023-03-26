@@ -1,7 +1,11 @@
 package signablemerkle
 
 import (
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 
 	"github.com/cbergoon/merkletree"
@@ -43,4 +47,34 @@ func NewSignableMerkle(databaseItems []*database.DBItems_DbItem) (*SignableMerkl
 	}
 
 	return (*SignableMerkle)(tree), nil
+}
+
+func (s *SignableMerkle) GetHash() string {
+	return hex.EncodeToString(s.Root.Hash)
+}
+
+func (s *SignableMerkle) GetSignedHash(privateKey *rsa.PrivateKey) (string, error) {
+	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, s.Root.Hash, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(signature), nil
+}
+
+func (s *SignableMerkle) VerifyHash(hash string) error {
+	if hash != s.GetHash() {
+		return errors.New("invalid Merkle tree hash")
+	}
+
+	return nil
+}
+
+func (s *SignableMerkle) VerifyHashSignature(signature string, publicKey *rsa.PublicKey) error {
+	signatureBytes, err := hex.DecodeString(signature)
+	if err != nil {
+		return err
+	}
+	err = rsa.VerifyPSS(publicKey, crypto.SHA256, s.Root.Hash, signatureBytes, nil)
+	return err
 }
