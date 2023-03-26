@@ -17,6 +17,7 @@ const (
 	HASH_AND_SIGN = "hash-and-sign"
 )
 
+// TODO: finish key loading
 func loadPrivateKey(rsaKeyPath string) (*rsa.PrivateKey, error) {
 	panic("not implemented")
 }
