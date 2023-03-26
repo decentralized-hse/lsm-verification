@@ -3,6 +3,7 @@ module github.com/decentralized-hse/lsm-verification
 go 1.20
 
 require (
+	github.com/cbergoon/merkletree v0.2.0
 	github.com/golang/protobuf v1.5.3
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
