@@ -28,7 +28,7 @@ func (s *SignableDBItem) CalculateHash() ([]byte, error) {
 func (s *SignableDBItem) Equals(other merkletree.Content) (bool, error) {
 	otherItem, ok := other.(*SignableDBItem)
 	if !ok {
-		return false, errors.New("value is not of type TestContent")
+		return false, errors.New("value is not of type SignableDBItem")
 	}
 	return (*proto.DBItems_DbItem)(s).String() == (*proto.DBItems_DbItem)(otherItem).String(), nil
 }
