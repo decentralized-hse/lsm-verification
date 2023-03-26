@@ -26,8 +26,9 @@ type LSeqDatabaseClient interface {
 	// Database API
 	GetValue(ctx context.Context, in *ReplicaKey, opts ...grpc.CallOption) (*Value, error)
 	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*LSeq, error)
-	Delete(ctx context.Context, in *Key, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Supports search only within one replica
 	SeekGet(ctx context.Context, in *SeekGetRequest, opts ...grpc.CallOption) (*DBItems, error)
+	GetReplicaEvents(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*DBItems, error)
 	// System calls for synchronization
 	SyncGet_(ctx context.Context, in *SyncGetRequest, opts ...grpc.CallOption) (*LSeq, error)
 	SyncPut_(ctx context.Context, in *DBItems, opts ...grpc.CallOption) (*empty.Empty, error)
@@ -59,18 +60,18 @@ func (c *lSeqDatabaseClient) Put(ctx context.Context, in *PutRequest, opts ...gr
 	return out, nil
 }
 
-func (c *lSeqDatabaseClient) Delete(ctx context.Context, in *Key, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/lseqdb.LSeqDatabase/Delete", in, out, opts...)
+func (c *lSeqDatabaseClient) SeekGet(ctx context.Context, in *SeekGetRequest, opts ...grpc.CallOption) (*DBItems, error) {
+	out := new(DBItems)
+	err := c.cc.Invoke(ctx, "/lseqdb.LSeqDatabase/SeekGet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *lSeqDatabaseClient) SeekGet(ctx context.Context, in *SeekGetRequest, opts ...grpc.CallOption) (*DBItems, error) {
+func (c *lSeqDatabaseClient) GetReplicaEvents(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*DBItems, error) {
 	out := new(DBItems)
-	err := c.cc.Invoke(ctx, "/lseqdb.LSeqDatabase/SeekGet", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/lseqdb.LSeqDatabase/GetReplicaEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +103,9 @@ type LSeqDatabaseServer interface {
 	// Database API
 	GetValue(context.Context, *ReplicaKey) (*Value, error)
 	Put(context.Context, *PutRequest) (*LSeq, error)
-	Delete(context.Context, *Key) (*empty.Empty, error)
+	// Supports search only within one replica
 	SeekGet(context.Context, *SeekGetRequest) (*DBItems, error)
+	GetReplicaEvents(context.Context, *EventsRequest) (*DBItems, error)
 	// System calls for synchronization
 	SyncGet_(context.Context, *SyncGetRequest) (*LSeq, error)
 	SyncPut_(context.Context, *DBItems) (*empty.Empty, error)
@@ -120,11 +122,11 @@ func (UnimplementedLSeqDatabaseServer) GetValue(context.Context, *ReplicaKey) (*
 func (UnimplementedLSeqDatabaseServer) Put(context.Context, *PutRequest) (*LSeq, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Put not implemented")
 }
-func (UnimplementedLSeqDatabaseServer) Delete(context.Context, *Key) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
 func (UnimplementedLSeqDatabaseServer) SeekGet(context.Context, *SeekGetRequest) (*DBItems, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SeekGet not implemented")
+}
+func (UnimplementedLSeqDatabaseServer) GetReplicaEvents(context.Context, *EventsRequest) (*DBItems, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReplicaEvents not implemented")
 }
 func (UnimplementedLSeqDatabaseServer) SyncGet_(context.Context, *SyncGetRequest) (*LSeq, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncGet_ not implemented")
@@ -181,24 +183,6 @@ func _LSeqDatabase_Put_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LSeqDatabase_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Key)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LSeqDatabaseServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/lseqdb.LSeqDatabase/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LSeqDatabaseServer).Delete(ctx, req.(*Key))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _LSeqDatabase_SeekGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SeekGetRequest)
 	if err := dec(in); err != nil {
@@ -213,6 +197,24 @@ func _LSeqDatabase_SeekGet_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LSeqDatabaseServer).SeekGet(ctx, req.(*SeekGetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LSeqDatabase_GetReplicaEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LSeqDatabaseServer).GetReplicaEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lseqdb.LSeqDatabase/GetReplicaEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LSeqDatabaseServer).GetReplicaEvents(ctx, req.(*EventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -269,12 +271,12 @@ var LSeqDatabase_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LSeqDatabase_Put_Handler,
 		},
 		{
-			MethodName: "Delete",
-			Handler:    _LSeqDatabase_Delete_Handler,
-		},
-		{
 			MethodName: "SeekGet",
 			Handler:    _LSeqDatabase_SeekGet_Handler,
+		},
+		{
+			MethodName: "GetReplicaEvents",
+			Handler:    _LSeqDatabase_GetReplicaEvents_Handler,
 		},
 		{
 			MethodName: "SyncGet_",
