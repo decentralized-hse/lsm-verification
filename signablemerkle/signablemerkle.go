@@ -1,14 +1,13 @@
 package signablemerkle
 
 import (
-	"crypto"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/hex"
 
 	"github.com/cbergoon/merkletree"
 	"github.com/decentralized-hse/lsm-verification/proto"
+	"github.com/decentralized-hse/lsm-verification/signature"
 )
 
 type SignableDBItem proto.DBItems_DbItem
@@ -53,7 +52,7 @@ func (s *SignableMerkle) GetHash() string {
 }
 
 func (s *SignableMerkle) GetSignedHash(privateKey *rsa.PrivateKey) (string, error) {
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, s.Root.Hash, nil)
+	signature, err := signature.Sign(privateKey, s.Root.Hash)
 	if err != nil {
 		return "", err
 	}
@@ -69,11 +68,10 @@ func (s *SignableMerkle) VerifyHash(hash string) error {
 	return nil
 }
 
-func (s *SignableMerkle) VerifyHashSignature(signature string, publicKey *rsa.PublicKey) error {
-	signatureBytes, err := hex.DecodeString(signature)
+func (s *SignableMerkle) VerifyHashSignature(signatureStr string, publicKey *rsa.PublicKey) error {
+	signatureBytes, err := hex.DecodeString(signatureStr)
 	if err != nil {
 		return err
 	}
-	err = rsa.VerifyPSS(publicKey, crypto.SHA256, s.Root.Hash, signatureBytes, nil)
-	return err
+	return signature.VerifySignature(signatureBytes, s.Root.Hash, publicKey)
 }

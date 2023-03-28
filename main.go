@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"crypto/rsa"
 	"log"
 	"os"
 	"strconv"
 
 	"github.com/decentralized-hse/lsm-verification/proto"
+	"github.com/decentralized-hse/lsm-verification/signature"
 	"github.com/decentralized-hse/lsm-verification/validation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,15 +17,6 @@ const (
 	VALIDATE      = "validate"
 	HASH_AND_SIGN = "hash-and-sign"
 )
-
-// TODO: finish key loading
-func loadPrivateKey(rsaKeyPath string) (*rsa.PrivateKey, error) {
-	panic("not implemented")
-}
-
-func loadPublicKey(rsaKeyPath string) (*rsa.PublicKey, error) {
-	panic("not implemented")
-}
 
 func main() {
 	if len(os.Args) != 5 {
@@ -57,13 +48,13 @@ func main() {
 
 	switch command {
 	case VALIDATE:
-		key, err := loadPublicKey(rsaKeyPath)
+		key, err := signature.LoadPublicKey(rsaKeyPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 		err = validation.Validate(context.Background(), client, replicaId, key)
 	case HASH_AND_SIGN:
-		key, err := loadPrivateKey(rsaKeyPath)
+		key, err := signature.LoadPrivateKey(rsaKeyPath)
 		if err != nil {
 			log.Fatal(err)
 		}
