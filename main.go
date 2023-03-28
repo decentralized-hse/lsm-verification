@@ -21,7 +21,7 @@ const (
 func main() {
 	if len(os.Args) != 5 {
 		log.Fatalf(
-			"Usage: %s {%s|%s} server_address replica_id {rsa_public_key|rsa_private_key}",
+			"usage: %s {%s|%s} server_address replica_id {rsa_public_key|rsa_private_key}",
 			os.Args[0],
 			VALIDATE,
 			HASH_AND_SIGN,
@@ -57,7 +57,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		log.Println("Validation was successful!")
+		log.Println("validation was successful!")
 	case HASH_AND_SIGN:
 		key, err := signature.LoadPrivateKey(rsaKeyPath)
 		if err != nil {
@@ -68,7 +68,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		log.Println("Hashing and signing were successful!")
+		log.Println("hashing and signing were successful!")
 	default:
 		log.Fatalf("unknown command: %s", command)
 	}
