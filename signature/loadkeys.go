@@ -29,10 +29,6 @@ func LoadPrivateKey(rsaKeyPath string) (*rsa.PrivateKey, error) {
 		return nil, err
 	}
 
-	if pemBlock.Type != RSA_PRIVATE_KEY {
-		return nil, ErrWrongKeyType
-	}
-
 	var parsedKey interface{}
 	parsedKey, err = x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 	if err != nil {
@@ -54,10 +50,6 @@ func LoadPublicKey(rsaKeyPath string) (*rsa.PublicKey, error) {
 	pemBlock, err := loadPEM(rsaKeyPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if pemBlock.Type != RSA_PUBLIC_KEY {
-		return nil, ErrWrongKeyType
 	}
 
 	parsedKey, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
