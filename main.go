@@ -52,20 +52,24 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = validation.Validate(context.Background(), client, replicaId, key)
+
+		if err = validation.Validate(context.Background(), client, replicaId, key); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Validation was successful!")
 	case HASH_AND_SIGN:
 		key, err := signature.LoadPrivateKey(rsaKeyPath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = validation.HashAndSign(context.Background(), client, replicaId, key)
+
+		if err = validation.HashAndSign(context.Background(), client, replicaId, key); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Hashing and signing were successful!")
 	default:
 		log.Fatalf("unknown command: %s", command)
 	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Operation successful!")
 }
