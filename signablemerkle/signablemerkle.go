@@ -52,7 +52,7 @@ func (s *SignableMerkle) GetHash() string {
 }
 
 func (s *SignableMerkle) GetSignedHash(privateKey *rsa.PrivateKey) (string, error) {
-	signature, err := signature.Sign(privateKey, s.Root.Hash)
+	signature, err := signature.Sign(s.Root.Hash, privateKey)
 	if err != nil {
 		return "", err
 	}

@@ -6,7 +6,7 @@ import (
 	"crypto/rsa"
 )
 
-func Sign(privateKey *rsa.PrivateKey, data []byte) ([]byte, error) {
+func Sign(data []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	return rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, data, nil)
 }
 
