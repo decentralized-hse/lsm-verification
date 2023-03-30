@@ -3,7 +3,7 @@ package validation
 import (
 	"context"
 
-	"github.com/decentralized-hse/lsm-verification/proto"
+	"lsm-verification/proto"
 )
 
 var HASH_KEY = "validation+hash"

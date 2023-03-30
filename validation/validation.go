@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/rsa"
 
-	"github.com/decentralized-hse/lsm-verification/proto"
-	"github.com/decentralized-hse/lsm-verification/signablemerkle"
+	"lsm-verification/proto"
+	"lsm-verification/signablemerkle"
 )
 
 func Validate(ctx context.Context, client proto.LSeqDatabaseClient, replicaId int32, publicKey *rsa.PublicKey) error {

@@ -6,9 +6,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/decentralized-hse/lsm-verification/proto"
-	"github.com/decentralized-hse/lsm-verification/signature"
-	"github.com/decentralized-hse/lsm-verification/validation"
+	"lsm-verification/proto"
+	"lsm-verification/signature"
+	"lsm-verification/validation"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

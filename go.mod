@@ -1,4 +1,4 @@
-module github.com/decentralized-hse/lsm-verification
+module lsm-verification
 
 go 1.20
 

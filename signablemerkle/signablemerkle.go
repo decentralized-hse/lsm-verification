@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
+	"lsm-verification/proto"
+	"lsm-verification/signature"
+
 	"github.com/cbergoon/merkletree"
-	"github.com/decentralized-hse/lsm-verification/proto"
-	"github.com/decentralized-hse/lsm-verification/signature"
 )
 
 type SignableDBItem proto.DBItems_DbItem
