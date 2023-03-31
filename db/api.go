@@ -29,6 +29,7 @@ func NewDbApi(
 	replicaId int32,
 	batchSize *uint32,
 ) (*DbApi, error) {
+	log.Println("Dialing GRPC")
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
