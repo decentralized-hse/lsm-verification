@@ -6,4 +6,5 @@ type Config struct {
 type Env struct {
 	ServerAddress interface{} `yaml:"server_address"`
 	ReplicaID interface{} `yaml:"replica_id"`
+	BatchSize interface{} `yaml:"batch_size"`
 }
