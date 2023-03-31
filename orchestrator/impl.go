@@ -64,7 +64,7 @@ func (o *orchestrator) ValidateFromLseq(lseqStart *string, hashLast* string) (*s
 	}
 	if len(batch) == 0 {
 		log.Println("Batch is empty, validation done")
-		return nil, nil, ErrNoNewEntities
+		return lseqStart, nil, ErrNoNewEntities
 	}
 	log.Println("Got batch")
 
