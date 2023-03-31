@@ -25,7 +25,7 @@ type dpApi struct {
 }
 
 func CreateDbState(cfg config.Config) (DbState, error) {
-	dbApi, err := CreateDbApi(
+	dbApi, err := createDbApi(
 		cfg.Env.Db.ServerAddress,
 		cfg.Env.Db.ReplicaID,
 		cfg.Db.BatchSize,
@@ -39,7 +39,7 @@ func CreateDbState(cfg config.Config) (DbState, error) {
 	return dbApi, nil
 }
 
-func CreateDbApi(
+func createDbApi(
 	addr string,
 	replicaId int32,
 	batchSize *uint32,
