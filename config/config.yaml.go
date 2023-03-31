@@ -6,8 +6,8 @@ type Config struct {
 	Db     Db          `yaml:"db"`
 }
 type Env struct {
-	EnvDb Db  `yaml:"db"`
-	Rsa   Rsa `yaml:"rsa"`
+	Db  EnvDb `yaml:"db"`
+	Rsa Rsa   `yaml:"rsa"`
 }
 type EnvDb struct {
 	ServerAddress interface{} `yaml:"server_address"`

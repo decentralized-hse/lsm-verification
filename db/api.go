@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"log"
+	"lsm-verification/config"
 	"lsm-verification/models"
 	"lsm-verification/proto"
 	"lsm-verification/signature"
@@ -23,7 +24,51 @@ type DbApi struct {
 	batchSize  uint32
 }
 
-func NewDbApi(
+func CreateDbState(cfg config.Config) (DbState, error) {
+	addr, ok := cfg.Env.Db.ServerAddress.(string)
+	if !ok {
+		return nil, ErrAddrNotSpecified
+	}
+
+	replicaId, ok := cfg.Env.Db.ReplicaID.(int)
+	if !ok {
+		return nil, ErrReplicaIDNotSpecified
+	}
+
+	var batchSize *uint32
+	if bs, ok := cfg.Db.BatchSize.(int); ok {
+		if bs <= 0 {
+			return nil, ErrInvalidBatchSize
+		}
+
+		*batchSize = uint32(bs)
+	}
+
+	publicKeyEnvVar, ok := cfg.Env.Rsa.PublicKey.(string)
+	if !ok {
+		return nil, ErrPublicKeyEnvVarNotSpecified
+	}
+
+	privateKeyEnvVar, ok := cfg.Env.Rsa.PrivateKey.(string)
+	if !ok {
+		return nil, ErrPrivateKeyEnvVarNotSpecified
+	}
+
+	dbApi, err := CreateDbApi(
+		addr,
+		int32(replicaId),
+		batchSize,
+		publicKeyEnvVar,
+		privateKeyEnvVar,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return dbApi, nil
+}
+
+func CreateDbApi(
 	addr string,
 	replicaId int32,
 	batchSize *uint32,
