@@ -58,13 +58,13 @@ func (d *DbApi) CloseConnection() {
 }
 
 func (d *DbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
-	eventsRequest := proto.EventsRequest{
+	eventsRequest := &proto.EventsRequest{
 		ReplicaId: d.replicaId,
 		Lseq:      startLseq,
 		Limit:     &d.batchSize,
 	}
 
-	dbItemsObj, err := d.client.GetReplicaEvents(context.Background(), &eventsRequest)
+	dbItemsObj, err := d.client.GetReplicaEvents(context.Background(), eventsRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -97,54 +97,35 @@ func (d *DbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 
 }
 
-func (d *DbApi) getLastReplicaEvent(key string, noItemsErr error) (*proto.DBItems_DbItem, error) {
-	eventsRequest := proto.EventsRequest{
-		ReplicaId: d.replicaId,
-		Key:       &key,
+func (d *DbApi) getLastValue(key string) (*proto.Value, error) {
+	replicaKey := &proto.ReplicaKey{
+		Key:       key,
+		ReplicaId: &d.replicaId,
 	}
-
-	dbItemsObj, err := d.client.GetReplicaEvents(context.Background(), &eventsRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	dbItems := dbItemsObj.Items
-	if len(dbItems) == 0 {
-		return nil, noItemsErr
-	}
-
-	lastItem := dbItems[len(dbItems)-1]
-	if lastItem == nil {
-		return nil, ErrEmptyItem
-	}
-
-	return lastItem, nil
+	return d.client.GetValue(context.Background(), replicaKey)
 }
 
 func (d *DbApi) GetLastValidated() (*models.ValidateItem, error) {
-	validationItem, err := d.getLastReplicaEvent(lastValidated, nil)
-	if err != nil {
-		return nil, err
-	}
-	if validationItem == nil {
-		return nil, nil
-	}
-
-	lastValidatedItem, err := d.getLastReplicaEvent(
-		createValidationKey(validationItem.Value),
-		ErrLastValidatedIsMissing,
-	)
-	if err != nil {
+	validationValue, err := d.getLastValue(lastValidated)
+	if err != nil || validationValue == nil {
 		return nil, err
 	}
 
-	hash, _, err := splitHashAndSignature(lastValidatedItem.Value)
+	lastValidatedValue, err := d.getLastValue(createValidationKey(validationValue.Value))
+	if err != nil {
+		return nil, err
+	}
+	if lastValidatedValue == nil {
+		return nil, ErrLastValidatedIsMissing
+	}
+
+	hash, _, err := splitHashAndSignature(lastValidatedValue.Value)
 	if err != nil {
 		return nil, err
 	}
 	result := &models.ValidateItem{
-		Lseq:          &validationItem.Lseq,
-		LseqItemValid: lastValidatedItem.Lseq,
+		Lseq:          &validationValue.Lseq,
+		LseqItemValid: lastValidatedValue.Lseq,
 		Hash:          hash,
 	}
 	return result, nil
