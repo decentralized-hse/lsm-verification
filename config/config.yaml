@@ -1,4 +1,4 @@
 # Validation | Sign 
-run_env: "Validation"
+run_mode: "Validation"
 db:
     batch_size: 10

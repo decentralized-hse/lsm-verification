@@ -1,12 +1,13 @@
 package main
 
 import (
-	"path"
-	"fmt"
+	"log"
 	"lsm-verification/config"
+	"path"
 )
 
 func main() {
-	conf := config.LoadConfig(path.Join("config", "config.yaml"))
-	fmt.Println(conf)
+	config := config.LoadConfig(path.Join("config", "config.yaml"))
+	log.Println("Running in mode: ", config.RunMode)
+
 }
