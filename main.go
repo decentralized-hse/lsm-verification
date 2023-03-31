@@ -53,6 +53,8 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to load db: ", err)
 	}
+	defer dbState.CloseConnection()
+
 	hashCalculator := calculations.CreateHashCalculator()
 	orch := orchestrator.CreateOrchestrator(dbState, hashCalculator)
 	log.Println("Running in mode: ", cfg.RunMode)
