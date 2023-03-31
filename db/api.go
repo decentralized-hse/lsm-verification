@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"crypto/rsa"
-	"encoding/hex"
 	"log"
 	"lsm-verification/models"
 	"lsm-verification/proto"
@@ -161,20 +160,8 @@ func (d *DbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 			return result, err
 		}
 
-		log.Println("Decoding the hash")
-		hashBytes, err := hex.DecodeString(hash)
-		if err != nil {
-			return result, err
-		}
-
-		log.Println("Decoding the signature")
-		signatureBytes, err := hex.DecodeString(signed)
-		if err != nil {
-			return result, err
-		}
-
 		log.Println("Verifying the signature")
-		if err := signature.VerifySignature(signatureBytes, hashBytes, d.publicKey); err != nil {
+		if err := signature.VerifySignature(signed, hash, d.publicKey); err != nil {
 			return result, err
 		}
 
@@ -208,10 +195,16 @@ func (d *DbApi) GetLastValidated() (*models.ValidateItem, error) {
 	log.Println("Loaded the hash and signature object for the last validated lseq")
 
 	log.Println("Splitting its value into the hash and the signature")
-	hash, _, err := splitHashAndSignature(lastValidatedValue.Value)
+	hash, signed, err := splitHashAndSignature(lastValidatedValue.Value)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("Verifying the signature")
+	if err := signature.VerifySignature(signed, hash, d.publicKey); err != nil {
+		return nil, err
+	}
+
 	result := &models.ValidateItem{
 		Lseq:          &validationValue.Lseq,
 		LseqItemValid: lastValidatedValue.Lseq,
@@ -239,19 +232,11 @@ func (d *DbApi) put(key, value string) error {
 }
 
 func (d *DbApi) signAndPut(item models.ValidateItem) error {
-	log.Println("Decoding the hash")
-	decoded, err := hex.DecodeString(item.Hash)
-	if err != nil {
-		return err
-	}
-
 	log.Println("Signing the hash")
-	signedBytes, err := signature.Sign(decoded, d.privateKey)
+	signed, err := signature.Sign(item.Hash, d.privateKey)
 	if err != nil {
 		return err
 	}
-
-	signed := hex.EncodeToString(signedBytes)
 
 	return d.put(item.LseqItemValid, joinHashAndSignature(item.Hash, signed))
 }
