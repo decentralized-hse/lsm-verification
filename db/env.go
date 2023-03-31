@@ -2,13 +2,11 @@ package db
 
 import (
 	"crypto/rsa"
-	"os"
 
 	"lsm-verification/signature"
 )
 
-func loadPublicKey(envVariable string) (*rsa.PublicKey, error) {
-	keyString := os.Getenv(envVariable)
+func loadPublicKey(keyString string) (*rsa.PublicKey, error) {
 	if len(keyString) == 0 {
 		return nil, ErrEmptyKey
 	}
@@ -16,8 +14,7 @@ func loadPublicKey(envVariable string) (*rsa.PublicKey, error) {
 	return signature.LoadPublicKey(keyString)
 }
 
-func loadPrivateKey(envVariable string) (*rsa.PrivateKey, error) {
-	keyString := os.Getenv(envVariable)
+func loadPrivateKey(keyString string) (*rsa.PrivateKey, error) {
 	if len(keyString) == 0 {
 		return nil, ErrEmptyKey
 	}
