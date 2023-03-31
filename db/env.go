@@ -7,13 +7,8 @@ import (
 	"lsm-verification/signature"
 )
 
-const (
-	publicKeyEnvVariable  = "PUBLIC_KEY"
-	privateKeyEnvVariable = "PRIVATE_KEY"
-)
-
-func loadPublicKey() (*rsa.PublicKey, error) {
-	keyString := os.Getenv(publicKeyEnvVariable)
+func loadPublicKey(envVariable string) (*rsa.PublicKey, error) {
+	keyString := os.Getenv(envVariable)
 	if len(keyString) == 0 {
 		return nil, ErrEmptyKey
 	}
@@ -21,8 +16,8 @@ func loadPublicKey() (*rsa.PublicKey, error) {
 	return signature.LoadPublicKey(keyString)
 }
 
-func loadPrivateKey() (*rsa.PrivateKey, error) {
-	keyString := os.Getenv(privateKeyEnvVariable)
+func loadPrivateKey(envVariable string) (*rsa.PrivateKey, error) {
+	keyString := os.Getenv(envVariable)
 	if len(keyString) == 0 {
 		return nil, ErrEmptyKey
 	}

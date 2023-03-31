@@ -27,6 +27,8 @@ func NewDbApi(
 	addr string,
 	replicaId int32,
 	batchSize *uint32,
+	publicKeyEnvVariable string,
+	privateKeyEnvVariable string,
 ) (*DbApi, error) {
 	log.Println("Dialing GRPC")
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -44,7 +46,7 @@ func NewDbApi(
 	log.Printf("Set the database batch size as %d\n", finalBatchSize)
 
 	log.Println("Trying to load the public key")
-	publicKey, err := loadPublicKey()
+	publicKey, err := loadPublicKey(publicKeyEnvVariable)
 	if err != nil {
 		if err == ErrEmptyKey {
 			log.Println("Warning: public key is not set, can only certify history")
@@ -54,7 +56,7 @@ func NewDbApi(
 	}
 
 	log.Println("Trying to load the private key")
-	privateKey, err := loadPrivateKey()
+	privateKey, err := loadPrivateKey(privateKeyEnvVariable)
 	if err != nil {
 		if err == ErrEmptyKey {
 			log.Println("Warning: private key is not set, can only verify history")
