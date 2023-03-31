@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func singLoop(orch orchestrator.Orchestrator, cfg config.Config) error {
+func signLoop(orch orchestrator.Orchestrator, cfg config.Config) error {
 	for {
 		err := orch.SignNew()
 		if err == nil {
@@ -69,7 +69,7 @@ func main() {
 			log.Println("Database is not valid on lseq: ", lastLseq)
 		}
 	} else if cfg.RunMode == config.RunModeSign {
-		err = singLoop(orch, cfg)
+		err = signLoop(orch, cfg)
 		if err != nil {
 			log.Fatalln(err)
 		}
