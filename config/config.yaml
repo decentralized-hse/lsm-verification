@@ -1,10 +1,4 @@
-run_env:
-env:
-    db:
-        server_address:
-        replica_id:
-    rsa:
-        public_key:
-        private_key:
+# Validation | Sign 
+run_env: "Validation"
 db:
-    batch_size:
+    batch_size: 10

@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"path"
+	"fmt"
+	"lsm-verification/config"
+)
 
 func main() {
-	fmt.Println("Hello, world!")
+	conf := config.LoadConfig(path.Join("config", "config.yaml"))
+	fmt.Println(conf)
 }

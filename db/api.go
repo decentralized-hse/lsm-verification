@@ -25,41 +25,12 @@ type dpApi struct {
 }
 
 func CreateDbState(cfg config.Config) (DbState, error) {
-	addr, ok := cfg.Env.Db.ServerAddress.(string)
-	if !ok {
-		return nil, ErrAddrNotSpecified
-	}
-
-	replicaId, ok := cfg.Env.Db.ReplicaID.(int)
-	if !ok {
-		return nil, ErrReplicaIDNotSpecified
-	}
-
-	var batchSize *uint32
-	if bs, ok := cfg.Db.BatchSize.(int); ok {
-		if bs <= 0 {
-			return nil, ErrInvalidBatchSize
-		}
-
-		*batchSize = uint32(bs)
-	}
-
-	publicKeyEnvVar, ok := cfg.Env.Rsa.PublicKey.(string)
-	if !ok {
-		return nil, ErrPublicKeyEnvVarNotSpecified
-	}
-
-	privateKeyEnvVar, ok := cfg.Env.Rsa.PrivateKey.(string)
-	if !ok {
-		return nil, ErrPrivateKeyEnvVarNotSpecified
-	}
-
 	dbApi, err := CreateDbApi(
-		addr,
-		int32(replicaId),
-		batchSize,
-		publicKeyEnvVar,
-		privateKeyEnvVar,
+		cfg.Env.Db.ServerAddress,
+		cfg.Env.Db.ReplicaID,
+		cfg.Db.BatchSize,
+		cfg.Env.Rsa.PublicKey,
+		cfg.Env.Rsa.PrivateKey,
 	)
 	if err != nil {
 		return nil, err
