@@ -15,7 +15,7 @@ import (
 
 const defaultBatchSize = 100
 
-type dpApi struct {
+type dbApi struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 	replicaId  int32
@@ -25,18 +25,13 @@ type dpApi struct {
 }
 
 func CreateDbState(cfg config.Config) (DbState, error) {
-	dbApi, err := createDbApi(
+	return createDbApi(
 		cfg.Env.Db.ServerAddress,
 		cfg.Env.Db.ReplicaID,
 		cfg.Db.BatchSize,
 		cfg.Env.Rsa.PublicKey,
 		cfg.Env.Rsa.PrivateKey,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return dbApi, nil
 }
 
 func createDbApi(
@@ -45,7 +40,7 @@ func createDbApi(
 	batchSize *uint32,
 	publicKeyEnvVariable string,
 	privateKeyEnvVariable string,
-) (*dpApi, error) {
+) (*dbApi, error) {
 	log.Println("Dialing GRPC")
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -85,7 +80,7 @@ func createDbApi(
 		return nil, ErrNoKeys
 	}
 
-	return &dpApi{
+	return &dbApi{
 		privateKey: privateKey,
 		publicKey:  publicKey,
 		replicaId:  replicaId,
@@ -95,12 +90,12 @@ func createDbApi(
 	}, nil
 }
 
-func (d *dpApi) CloseConnection() {
+func (d *dbApi) CloseConnection() {
 	log.Println("Closing the database connection")
 	d.conn.Close()
 }
 
-func (d *dpApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
+func (d *dbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 	eventsRequest := &proto.EventsRequest{
 		ReplicaId: d.replicaId,
 		Lseq:      startLseq,
@@ -141,7 +136,7 @@ func (d *dpApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 	return result, nil
 }
 
-func (d *dpApi) getLastValue(key string) (*proto.Value, error) {
+func (d *dbApi) getLastValue(key string) (*proto.Value, error) {
 	replicaKey := &proto.ReplicaKey{
 		Key:       key,
 		ReplicaId: &d.replicaId,
@@ -157,7 +152,7 @@ func (d *dpApi) getLastValue(key string) (*proto.Value, error) {
 	return val, nil
 }
 
-func (d *dpApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error) {
+func (d *dbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error) {
 	result := make([]models.ValidateItem, 0, len(lseqs))
 
 	log.Println("Validating lseqs")
@@ -196,7 +191,7 @@ func (d *dpApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 	return result, nil
 }
 
-func (d *dpApi) GetLastValidated() (*models.ValidateItem, error) {
+func (d *dbApi) GetLastValidated() (*models.ValidateItem, error) {
 	validationValue, err := d.getLastValue(lastValidated)
 	if err != nil || validationValue == nil {
 		return nil, err
@@ -233,7 +228,7 @@ func (d *dpApi) GetLastValidated() (*models.ValidateItem, error) {
 	return result, nil
 }
 
-func (d *dpApi) put(key, value string) error {
+func (d *dbApi) put(key, value string) error {
 	putRequest := &proto.PutRequest{
 		Key:   key,
 		Value: value,
@@ -249,7 +244,7 @@ func (d *dpApi) put(key, value string) error {
 	return nil
 }
 
-func (d *dpApi) signAndPut(item models.ValidateItem) error {
+func (d *dbApi) signAndPut(item models.ValidateItem) error {
 	log.Println("Signing the hash")
 	signed, err := signature.Sign(item.Hash, d.privateKey)
 	if err != nil {
@@ -259,7 +254,7 @@ func (d *dpApi) signAndPut(item models.ValidateItem) error {
 	return d.put(item.LseqItemValid, joinHashAndSignature(item.Hash, signed))
 }
 
-func (d *dpApi) PutBatch(items []models.ValidateItem) error {
+func (d *dbApi) PutBatch(items []models.ValidateItem) error {
 	log.Println("Appending a batch to the database")
 	for _, item := range items {
 		if err := d.signAndPut(item); err != nil {
