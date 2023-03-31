@@ -47,7 +47,7 @@ func NewDbApi(
 	publicKey, err := loadPublicKey()
 	if err != nil {
 		if err == ErrEmptyKey {
-			log.Println("warning: public key is not set, can only certify history")
+			log.Println("Warning: public key is not set, can only certify history")
 		} else {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func NewDbApi(
 	privateKey, err := loadPrivateKey()
 	if err != nil {
 		if err == ErrEmptyKey {
-			log.Println("warning: private key is not set, can only verify history")
+			log.Println("Warning: private key is not set, can only verify history")
 		} else {
 			return nil, err
 		}
