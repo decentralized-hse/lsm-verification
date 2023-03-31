@@ -1,5 +1,10 @@
 run_env:
 env:
-    server_address:
-    replica_id:
+    db:
+        server_address:
+        replica_id:
+    rsa:
+        public_key:
+        private_key:
+db:
     batch_size:
