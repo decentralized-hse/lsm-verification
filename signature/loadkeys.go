@@ -4,18 +4,12 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"os"
 )
 
 // Written with help from https://stackoverflow.com/questions/44230634/how-to-read-an-rsa-key-from-file
 
-func loadPEM(keyPath string) (*pem.Block, error) {
-	fileContents, err := os.ReadFile(keyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	decoded, _ := pem.Decode(fileContents)
+func loadPEM(rsaKeyContents string) (*pem.Block, error) {
+	decoded, _ := pem.Decode([]byte(rsaKeyContents))
 	if decoded == nil {
 		return nil, ErrNoPEMBlock
 	}
@@ -23,8 +17,8 @@ func loadPEM(keyPath string) (*pem.Block, error) {
 	return decoded, nil
 }
 
-func LoadPrivateKey(rsaKeyPath string) (*rsa.PrivateKey, error) {
-	pemBlock, err := loadPEM(rsaKeyPath)
+func LoadPrivateKey(rsaKeyContents string) (*rsa.PrivateKey, error) {
+	pemBlock, err := loadPEM(rsaKeyContents)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +40,8 @@ func LoadPrivateKey(rsaKeyPath string) (*rsa.PrivateKey, error) {
 	return privKey, nil
 }
 
-func LoadPublicKey(rsaKeyPath string) (*rsa.PublicKey, error) {
-	pemBlock, err := loadPEM(rsaKeyPath)
+func LoadPublicKey(rsaKeyContents string) (*rsa.PublicKey, error) {
+	pemBlock, err := loadPEM(rsaKeyContents)
 	if err != nil {
 		return nil, err
 	}

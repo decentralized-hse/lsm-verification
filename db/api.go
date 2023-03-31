@@ -27,13 +27,11 @@ type DbApi struct {
 func NewDbApi(
 	addr string,
 	replicaId int32,
-	privateKey *rsa.PrivateKey,
-	publicKey *rsa.PublicKey,
 	batchSize *uint32,
-) DbApi {
+) (*DbApi, error) {
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	client := proto.NewLSeqDatabaseClient(conn)
@@ -43,14 +41,36 @@ func NewDbApi(
 		finalBatchSize = *batchSize
 	}
 
-	return DbApi{
+	publicKey, err := loadPublicKey()
+	if err != nil {
+		if err == ErrEmptyKey {
+			log.Println("warning: public key is not set, can only certify history")
+		} else {
+			return nil, err
+		}
+	}
+
+	privateKey, err := loadPrivateKey()
+	if err != nil {
+		if err == ErrEmptyKey {
+			log.Println("warning: private key is not set, can only verify history")
+		} else {
+			return nil, err
+		}
+	}
+
+	if publicKey == nil && privateKey == nil {
+		return nil, ErrNoKeys
+	}
+
+	return &DbApi{
 		privateKey: privateKey,
 		publicKey:  publicKey,
 		replicaId:  replicaId,
 		conn:       conn,
 		client:     client,
 		batchSize:  finalBatchSize,
-	}
+	}, nil
 }
 
 func (d *DbApi) CloseConnection() {
