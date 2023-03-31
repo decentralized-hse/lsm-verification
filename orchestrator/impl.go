@@ -6,7 +6,6 @@ import (
 	"lsm-verification/models"
 	"lsm-verification/db"
 	"lsm-verification/calculations"
-	"lsm-verification/config"
 )
 
 type orchestrator struct {
