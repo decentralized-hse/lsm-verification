@@ -34,13 +34,16 @@ func NewDbApi(
 		return nil, err
 	}
 
+	log.Println("Creating a database connection")
 	client := proto.NewLSeqDatabaseClient(conn)
 
 	var finalBatchSize uint32 = defaultBatchSize
-	if batchSize != nil {
+	if batchSize != nil && *batchSize != 0 {
 		finalBatchSize = *batchSize
 	}
+	log.Printf("Set the database batch size as %d\n", finalBatchSize)
 
+	log.Println("Trying to load the public key")
 	publicKey, err := loadPublicKey()
 	if err != nil {
 		if err == ErrEmptyKey {
@@ -50,6 +53,7 @@ func NewDbApi(
 		}
 	}
 
+	log.Println("Trying to load the private key")
 	privateKey, err := loadPrivateKey()
 	if err != nil {
 		if err == ErrEmptyKey {
@@ -74,6 +78,7 @@ func NewDbApi(
 }
 
 func (d *DbApi) CloseConnection() {
+	log.Println("Closing the database connection")
 	d.conn.Close()
 }
 
@@ -84,20 +89,24 @@ func (d *DbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 		Limit:     &d.batchSize,
 	}
 
+	log.Println("Requesting a DBItem batch from the database")
 	dbItemsObj, err := d.client.GetReplicaEvents(context.Background(), eventsRequest)
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Received a DBItem batch from the database")
 
 	dbItems := dbItemsObj.Items
 	result := make([]models.DbItem, 0, len(dbItems))
+	log.Println("Preprocessing the batch")
 	for _, item := range dbItems {
 		if item == nil {
 			return nil, ErrEmptyItem
 		}
 
 		if isValidationKey(item.Key) {
-			continue // we skip validation-specific keys
+			log.Println("Skipping a validation-specific key")
+			continue
 		}
 
 		result = append(
@@ -109,6 +118,7 @@ func (d *DbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 			},
 		)
 	}
+	log.Println("Finished preprocessing the batch")
 
 	return result, nil
 }
@@ -118,36 +128,51 @@ func (d *DbApi) getLastValue(key string) (*proto.Value, error) {
 		Key:       key,
 		ReplicaId: &d.replicaId,
 	}
-	return d.client.GetValue(context.Background(), replicaKey)
+
+	log.Println("Requesting the last value based on a key from the database")
+	val, err := d.client.GetValue(context.Background(), replicaKey)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("Received the last value based on a key from the database")
+
+	return val, nil
 }
 
 func (d *DbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error) {
 	result := make([]models.ValidateItem, 0, len(lseqs))
 
+	log.Println("Validating lseqs")
 	for _, lseq := range lseqs {
 		val, err := d.getLastValue(createValidationKey(lseq))
 		if err != nil {
 			return result, err
 		}
 		if val == nil {
-			return result, nil // the rest is not validated, we skip it
+			log.Println("Got an unvalidated lseq, skipping the rest")
+			return result, nil
 		}
+		log.Println("Loaded a validated lseq")
 
+		log.Println("Splitting its value into the hash and the signature")
 		hash, signed, err := splitHashAndSignature(val.Value)
 		if err != nil {
 			return result, err
 		}
 
+		log.Println("Decoding the hash")
 		hashBytes, err := hex.DecodeString(hash)
 		if err != nil {
 			return result, err
 		}
 
+		log.Println("Decoding the signature")
 		signatureBytes, err := hex.DecodeString(signed)
 		if err != nil {
 			return result, err
 		}
 
+		log.Println("Verifying the signature")
 		if err := signature.VerifySignature(signatureBytes, hashBytes, d.publicKey); err != nil {
 			return result, err
 		}
@@ -160,6 +185,7 @@ func (d *DbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 			},
 		)
 	}
+	log.Println("Successfully validated all lseqs")
 
 	return result, nil
 }
@@ -169,6 +195,7 @@ func (d *DbApi) GetLastValidated() (*models.ValidateItem, error) {
 	if err != nil || validationValue == nil {
 		return nil, err
 	}
+	log.Println("Loaded the last validated lseq object")
 
 	lastValidatedValue, err := d.getLastValue(createValidationKey(validationValue.Value))
 	if err != nil {
@@ -177,7 +204,9 @@ func (d *DbApi) GetLastValidated() (*models.ValidateItem, error) {
 	if lastValidatedValue == nil {
 		return nil, ErrLastValidatedIsMissing
 	}
+	log.Println("Loaded the hash and signature object for the last validated lseq")
 
+	log.Println("Splitting its value into the hash and the signature")
 	hash, _, err := splitHashAndSignature(lastValidatedValue.Value)
 	if err != nil {
 		return nil, err
@@ -187,6 +216,8 @@ func (d *DbApi) GetLastValidated() (*models.ValidateItem, error) {
 		LseqItemValid: lastValidatedValue.Lseq,
 		Hash:          hash,
 	}
+	log.Println("Constructed the last validated item")
+
 	return result, nil
 }
 
@@ -196,16 +227,24 @@ func (d *DbApi) put(key, value string) error {
 		Value: value,
 	}
 
+	log.Println("Requesting to append to the database")
 	_, err := d.client.Put(context.Background(), putRequest)
-	return err
+	if err != nil {
+		return err
+	}
+	log.Println("Appended to the database")
+
+	return nil
 }
 
 func (d *DbApi) signAndPut(item models.ValidateItem) error {
+	log.Println("Decoding the hash")
 	decoded, err := hex.DecodeString(item.Hash)
 	if err != nil {
 		return err
 	}
 
+	log.Println("Signing the hash")
 	signedBytes, err := signature.Sign(decoded, d.privateKey)
 	if err != nil {
 		return err
@@ -217,11 +256,13 @@ func (d *DbApi) signAndPut(item models.ValidateItem) error {
 }
 
 func (d *DbApi) PutBatch(items []models.ValidateItem) error {
+	log.Println("Appending a batch to the database")
 	for _, item := range items {
 		if err := d.signAndPut(item); err != nil {
 			return err
 		}
 	}
 
+	log.Println("Updating the last validated lseq in the database")
 	return d.put(lastValidated, items[len(items)-1].LseqItemValid)
 }
