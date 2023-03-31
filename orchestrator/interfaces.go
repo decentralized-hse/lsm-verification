@@ -1,12 +1,12 @@
 package orchestrator
 
-import "fmt"
+import "errors"
 
 var (
-	ErrNoNewEntities = fmt.Errorf("No new entities found")
-	ErrValidationFailed = fmt.Errorf("Validation failed")
-	ErrBatchLenMismatch = fmt.Errorf("Batches length mismatch")
-	ErrBadInput = fmt.Errorf("Bad input")
+	ErrNoNewEntities = errors.New("No new entities found")
+	ErrValidationFailed = errors.New("Validation failed")
+	ErrBatchLenMismatch = errors.New("Batches length mismatch")
+	ErrBadInput = errors.New("Bad input")
 )
 
 type Orchestrator interface {
