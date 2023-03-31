@@ -1,4 +1,6 @@
 # Validation | Sign 
 run_mode: "Validation"
+skip_errors: false
+sign_timeout: 5
 db:
     batch_size: 10

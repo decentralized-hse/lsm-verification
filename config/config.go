@@ -9,10 +9,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	RunModeValidation = "Validation"
+	RunModeSign       = "Sign"
+)
+
 type Config struct {
-	RunMode string `yaml:"run_mode,omitempty"`
-	Env     Env
-	Db      Db `yaml:"db,omitempty"`
+	RunMode     string `yaml:"run_mode,omitempty"`
+	SkipErrors  bool   `yaml:"skip_errors,omitempty"`
+	SignTimeout int    `yaml:"sign_timeout,omitempty"`
+	Env         Env
+	Db          Db `yaml:"db,omitempty"`
 }
 type Env struct {
 	Db  EnvDb
@@ -58,7 +65,7 @@ func LoadConfig(path string) Config {
 	if privateKey, exists := os.LookupEnv("rsaPrivateKey"); exists {
 		config.Env.Rsa.PrivateKey = privateKey
 	} else {
-		if config.RunMode != "Validation" {
+		if config.RunMode != RunModeValidation {
 			log.Fatalln("rsaPrivateKey key not found, trying to start in mode: ", config.RunMode)
 		}
 		log.Println("Starting in validation mode")
