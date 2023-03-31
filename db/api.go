@@ -93,16 +93,55 @@ func (d *DbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 	return result, nil
 }
 
-func (d *DbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error) {
-
-}
-
 func (d *DbApi) getLastValue(key string) (*proto.Value, error) {
 	replicaKey := &proto.ReplicaKey{
 		Key:       key,
 		ReplicaId: &d.replicaId,
 	}
 	return d.client.GetValue(context.Background(), replicaKey)
+}
+
+func (d *DbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error) {
+	result := make([]models.ValidateItem, 0, len(lseqs))
+
+	for _, lseq := range lseqs {
+		val, err := d.getLastValue(createValidationKey(lseq))
+		if err != nil {
+			return result, err
+		}
+		if val == nil {
+			return result, nil // the rest is not validated, we skip it
+		}
+
+		hash, signed, err := splitHashAndSignature(val.Value)
+		if err != nil {
+			return result, err
+		}
+
+		hashBytes, err := hex.DecodeString(hash)
+		if err != nil {
+			return result, err
+		}
+
+		signatureBytes, err := hex.DecodeString(signed)
+		if err != nil {
+			return result, err
+		}
+
+		if err := signature.VerifySignature(signatureBytes, hashBytes, d.publicKey); err != nil {
+			return result, err
+		}
+
+		result = append(
+			result,
+			models.ValidateItem{
+				LseqItemValid: val.Lseq,
+				Hash:          hash,
+			},
+		)
+	}
+
+	return result, nil
 }
 
 func (d *DbApi) GetLastValidated() (*models.ValidateItem, error) {
