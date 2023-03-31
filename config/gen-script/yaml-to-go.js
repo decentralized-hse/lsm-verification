@@ -400,7 +400,7 @@ function yamlToGo(yaml, typename, flatten = true)
 }
 
 configDir = __dirname + '/..'
-fs.writeFileSync(configDir + '/config.yaml.go', 'package config\n' + yamlToGo(configDir + '/config.yaml').go)
+fs.writeFileSync(configDir + '/config.yaml.go', 'package config\n' + yamlToGo(configDir + '/config.yaml', 'Config').go)
 
 // if (typeof module != 'undefined') {
 //     if (!module.parent) {
