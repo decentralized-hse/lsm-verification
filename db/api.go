@@ -252,7 +252,7 @@ func (d *dbApi) signAndPut(item models.ValidateItem) error {
 		return err
 	}
 
-	return d.put(item.LseqItemValid, joinHashAndSignature(item.Hash, signed))
+	return d.put(createValidationKey(item.LseqItemValid), joinHashAndSignature(item.Hash, signed))
 }
 
 func (d *dbApi) PutBatch(items []models.ValidateItem) error {
@@ -264,5 +264,5 @@ func (d *dbApi) PutBatch(items []models.ValidateItem) error {
 	}
 
 	log.Println("Updating the last validated lseq in the database")
-	return d.put(createValidationKey(lastValidated), items[len(items)-1].LseqItemValid)
+	return d.put(lastValidated, items[len(items)-1].LseqItemValid)
 }
