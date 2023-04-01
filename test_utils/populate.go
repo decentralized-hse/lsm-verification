@@ -106,7 +106,13 @@ func main() {
 			put(client, key, value)
 		}
 	} else if mode == "read" {
-		log.Println(readBatch(client))
+		b, err := readBatch(client)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		for i, v := range b {
+			log.Println("Value number", i, ":", v)
+		}
 	} else {
 		var count int
 		fmt.Printf("count: ")
