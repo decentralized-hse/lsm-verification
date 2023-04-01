@@ -2,7 +2,7 @@
 
 Utility for hashing, signing, and validating LSM database replica entries.
 
-## Usage: 
+### Usage: 
 1. Generate private and public RSA keys, for example, by running
 ```bash
 openssl genrsa -out ~/mykey.pem 2048
