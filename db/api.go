@@ -157,7 +157,7 @@ func (d *dbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 
 	log.Println("Validating lseqs")
 	for _, lseq := range lseqs {
-		val, err := d.getLastValue(CreateValidationKey(lseq))
+		val, err := d.getLastValue(createValidationKey(lseq))
 		if err != nil {
 			return result, err
 		}
@@ -181,7 +181,8 @@ func (d *dbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 		result = append(
 			result,
 			models.ValidateItem{
-				LseqItemValid: val.Lseq,
+				Lseq:          &val.Lseq,
+				LseqItemValid: lseq,
 				Hash:          hash,
 			},
 		)
@@ -198,7 +199,7 @@ func (d *dbApi) GetLastValidated() (*models.ValidateItem, error) {
 	}
 	log.Println("Loaded the last validated lseq object")
 
-	lastValidatedValue, err := d.getLastValue(CreateValidationKey(validationValue.Value))
+	lastValidatedValue, err := d.getLastValue(createValidationKey(validationValue.Value))
 	if err != nil {
 		return nil, err
 	}
@@ -219,8 +220,8 @@ func (d *dbApi) GetLastValidated() (*models.ValidateItem, error) {
 	}
 
 	result := &models.ValidateItem{
-		Lseq:          &validationValue.Lseq,
-		LseqItemValid: lastValidatedValue.Lseq,
+		Lseq:          &lastValidatedValue.Lseq,
+		LseqItemValid: validationValue.Value,
 		Hash:          hash,
 	}
 	log.Println("Constructed the last validated item")
@@ -263,5 +264,5 @@ func (d *dbApi) PutBatch(items []models.ValidateItem) error {
 	}
 
 	log.Println("Updating the last validated lseq in the database")
-	return d.put(lastValidated, items[len(items)-1].LseqItemValid)
+	return d.put(createValidationKey(lastValidated), items[len(items)-1].LseqItemValid)
 }

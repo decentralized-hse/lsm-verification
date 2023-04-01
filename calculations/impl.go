@@ -2,7 +2,6 @@ package calculations
 
 import (
 	"crypto/sha256"
-	"lsm-verification/db"
 	"lsm-verification/models"
 )
 
@@ -25,7 +24,7 @@ func (h *hashCalculator) CalculateBatch(items []models.DbItem, hashStart *string
 		currentHash = hashPrefixWithDbItem(&item, &currentHash)
 		validatesItem := models.ValidateItem{
 			Lseq:          nil,
-			LseqItemValid: db.CreateValidationKey(item.Lseq),
+			LseqItemValid: item.Lseq,
 			Hash:          currentHash,
 		}
 		result = append(result, validatesItem)
