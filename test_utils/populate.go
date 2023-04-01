@@ -78,5 +78,6 @@ func main() {
 		fmt.Print("Value: ")
 		fmt.Scanf("%s\n", &value)
 		fmt.Println(key, value)
+		put(client, key, value)
 	}
 }
