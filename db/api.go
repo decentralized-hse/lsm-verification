@@ -181,7 +181,8 @@ func (d *dbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 		result = append(
 			result,
 			models.ValidateItem{
-				LseqItemValid: val.Lseq,
+				Lseq:          &val.Lseq,
+				LseqItemValid: lseq,
 				Hash:          hash,
 			},
 		)
@@ -219,8 +220,8 @@ func (d *dbApi) GetLastValidated() (*models.ValidateItem, error) {
 	}
 
 	result := &models.ValidateItem{
-		Lseq:          &validationValue.Lseq,
-		LseqItemValid: lastValidatedValue.Lseq,
+		Lseq:          &lastValidatedValue.Lseq,
+		LseqItemValid: validationValue.Value,
 		Hash:          hash,
 	}
 	log.Println("Constructed the last validated item")
@@ -251,7 +252,7 @@ func (d *dbApi) signAndPut(item models.ValidateItem) error {
 		return err
 	}
 
-	return d.put(item.LseqItemValid, joinHashAndSignature(item.Hash, signed))
+	return d.put(createValidationKey(item.LseqItemValid), joinHashAndSignature(item.Hash, signed))
 }
 
 func (d *dbApi) PutBatch(items []models.ValidateItem) error {
