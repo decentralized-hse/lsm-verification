@@ -157,7 +157,7 @@ func (d *dbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 
 	log.Println("Validating lseqs")
 	for _, lseq := range lseqs {
-		val, err := d.getLastValue(createValidationKey(lseq))
+		val, err := d.getLastValue(CreateValidationKey(lseq))
 		if err != nil {
 			return result, err
 		}
@@ -198,7 +198,7 @@ func (d *dbApi) GetLastValidated() (*models.ValidateItem, error) {
 	}
 	log.Println("Loaded the last validated lseq object")
 
-	lastValidatedValue, err := d.getLastValue(createValidationKey(validationValue.Value))
+	lastValidatedValue, err := d.getLastValue(CreateValidationKey(validationValue.Value))
 	if err != nil {
 		return nil, err
 	}

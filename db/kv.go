@@ -4,14 +4,14 @@ import "strings"
 
 const validationPrefix = "_v+"
 
-var lastValidated = createValidationKey("last_validated")
+var lastValidated = CreateValidationKey("last_validated")
+
+func CreateValidationKey(key string) string {
+	return validationPrefix + key
+}
 
 func isValidationKey(key string) bool {
 	return strings.HasPrefix(key, validationPrefix)
-}
-
-func createValidationKey(key string) string {
-	return validationPrefix + key
 }
 
 func splitHashAndSignature(joined string) (string, string, error) {
