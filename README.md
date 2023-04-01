@@ -34,3 +34,4 @@ export rsaPrivateKey=$(cat ~/mykey.pem)
     - Setting their `rsaPublicKey` to your public key
     - Running `./lsm-verification`
 
+
