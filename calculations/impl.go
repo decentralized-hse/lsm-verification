@@ -5,6 +5,8 @@ import (
 	"lsm-verification/models"
 )
 
+type hashCalculator struct{}
+
 func CreateHashCalculator() HashCalculator {
 	return &hashCalculator{}
 }
