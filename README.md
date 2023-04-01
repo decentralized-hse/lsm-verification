@@ -1,6 +1,6 @@
 # lsm-verification
 
-Utility for hashing, signing, and validating [LSM database](https://github.com/ds-project-lseqdb/ds-project-public/tree/main/src) replica entries.
+Utility for hashing, signing, and validating [LSM database](https://github.com/ds-project-lseqdb/ds-project-public) replica entries.
 
 ### Usage: 
 1. Generate private and public RSA keys, for example, by running
