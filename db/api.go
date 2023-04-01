@@ -8,6 +8,7 @@ import (
 	"lsm-verification/models"
 	"lsm-verification/proto"
 	"lsm-verification/signature"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -118,7 +119,7 @@ func (d *dbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 		}
 
 		if isValidationKey(item.Key) {
-			log.Println("Skipping a validation-specific key")
+			log.Println("Skipping a validation-specific key", item.Key)
 			continue
 		}
 
@@ -133,6 +134,9 @@ func (d *dbApi) ReadBatch(startLseq *string) ([]models.DbItem, error) {
 	}
 	log.Println("Finished preprocessing the batch")
 
+	if len(result) == 0 && len(dbItems) > 0 {
+		return d.ReadBatch(&dbItems[len(dbItems)-1].Lseq)
+	}
 	return result, nil
 }
 
@@ -142,9 +146,10 @@ func (d *dbApi) getLastValue(key string) (*proto.Value, error) {
 		ReplicaId: &d.replicaId,
 	}
 
-	log.Println("Requesting the last value based on a key from the database")
+	log.Println("Requesting the last value based on a key from the database", replicaKey)
 	val, err := d.client.GetValue(context.Background(), replicaKey)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	log.Println("Received the last value based on a key from the database")
@@ -195,6 +200,9 @@ func (d *dbApi) ReadBatchValidated(lseqs []string) ([]models.ValidateItem, error
 func (d *dbApi) GetLastValidated() (*models.ValidateItem, error) {
 	validationValue, err := d.getLastValue(lastValidated)
 	if err != nil || validationValue == nil {
+		if strings.Contains(err.Error(), "NotFound") {
+			return nil, nil
+		}
 		return nil, err
 	}
 	log.Println("Loaded the last validated lseq object")
@@ -235,7 +243,7 @@ func (d *dbApi) put(key, value string) error {
 		Value: value,
 	}
 
-	log.Println("Requesting to append to the database")
+	log.Println("Requesting to append to the database", putRequest)
 	_, err := d.client.Put(context.Background(), putRequest)
 	if err != nil {
 		return err

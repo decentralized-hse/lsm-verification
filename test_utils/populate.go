@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
 	"fmt"
+	"log"
 	"math/rand"
+	"os"
 
+	"lsm-verification/models"
 	"lsm-verification/proto"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -28,13 +30,48 @@ func put(client proto.LSeqDatabaseClient, key, value string) error {
 	return nil
 }
 
+func readBatch(d proto.LSeqDatabaseClient) ([]models.DbItem, error) {
+	eventsRequest := &proto.EventsRequest{
+		ReplicaId: 2,
+	}
+
+	log.Println("Requesting a DBItem batch from the database")
+	dbItemsObj, err := d.GetReplicaEvents(context.Background(), eventsRequest)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("Received a DBItem batch from the database")
+
+	dbItems := dbItemsObj.Items
+	result := make([]models.DbItem, 0, len(dbItems))
+	log.Println("Preprocessing the batch")
+	for _, item := range dbItems {
+		if item == nil {
+			log.Fatalln("asldkjhasdljas")
+		}
+
+		result = append(
+			result,
+			models.DbItem{
+				Lseq:  item.Lseq,
+				Key:   item.Key,
+				Value: item.Value,
+			},
+		)
+	}
+	log.Println("Finished preprocessing the batch")
+
+	return result, nil
+}
+
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 func randSeq(n int) string {
-    b := make([]rune, n)
-    for i := range b {
-        b[i] = letters[rand.Intn(len(letters))]
-    }
-    return string(b)
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
 
 func main() {
@@ -55,29 +92,32 @@ func main() {
 	var mode string
 	fmt.Printf("Mode: ")
 	fmt.Scanf("%s\n", &mode)
-	if mode != "console" {
+
+	if mode == "console" {
+		for {
+			var key string
+			fmt.Printf("Key: ")
+			fmt.Scanf("%s\n", &key)
+
+			var value string
+			fmt.Print("Value: ")
+			fmt.Scanf("%s\n", &value)
+			fmt.Println(key, value)
+			put(client, key, value)
+		}
+	} else if mode == "read" {
+		log.Println(readBatch(client))
+	} else {
 		var count int
 		fmt.Printf("count: ")
 		fmt.Scanf("%d\n", &count)
-		
-		for i := 0; i < count; i+=1 {
+
+		for i := 0; i < count; i += 1 {
 			key := randSeq(5)
 			value := randSeq(10)
 			put(client, key, value)
-			log.Println("Putted", key, value)	
+			log.Println("Putted", key, value)
 		}
 		return
-	}
-
-	for {
-		var key string
-		fmt.Printf("Key: ")
-		fmt.Scanf("%s\n", &key)
-	 
-		var value string
-		fmt.Print("Value: ")
-		fmt.Scanf("%s\n", &value)
-		fmt.Println(key, value)
-		put(client, key, value)
 	}
 }

@@ -2,6 +2,7 @@ package calculations
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"lsm-verification/models"
 )
 
@@ -38,5 +39,5 @@ func (h *hashCalculator) CalculateBatch(items []models.DbItem, hashStart *string
 func hashPrefixWithDbItem(item *models.DbItem, prefixHash *string) string {
 	prefixWithlkv := *prefixHash + item.Lseq + item.Key + item.Value
 	hash := sha256.Sum256([]byte(prefixWithlkv))
-	return string(hash[:])
+	return hex.EncodeToString(hash[:])
 }

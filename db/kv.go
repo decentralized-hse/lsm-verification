@@ -2,9 +2,9 @@ package db
 
 import "strings"
 
-const validationPrefix = "_v+"
+const validationPrefix = "_v_"
 
-var lastValidated = createValidationKey("last_validated")
+const lastValidated = "_v_asd"
 
 func isValidationKey(key string) bool {
 	return strings.HasPrefix(key, validationPrefix)
